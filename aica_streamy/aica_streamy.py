@@ -6,12 +6,8 @@ from typing import Any
 import reflex as rx
 import reflex.event as ev
 import reflex_chakra as rc
-
-# test
 from reflex_intersection_observer import intersection_observer
 from reflex_intersection_observer import IntersectionObserverEntry
-#from aica_streamy.test import intersection_observer
-#from aica_streamy.test import IntersectionObserverEntry
 
 # my files
 import aica_streamy.content as content
