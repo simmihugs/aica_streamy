@@ -6,8 +6,8 @@ from typing import Any
 import reflex as rx
 import reflex.event as ev
 import reflex_chakra as rc
-from reflex_intersection_observer import intersection_observer
-from reflex_intersection_observer import IntersectionObserverEntry
+#from reflex_intersection_observer import intersection_observer
+#from reflex_intersection_observer import IntersectionObserverEntry
 
 # my files
 import aica_streamy.content as content
@@ -25,11 +25,38 @@ class ScrollHandlingState(rx.State):
         return rx.call_script(
             f"document.getElementById('{BOTTOM_ELEMENT_ID}').scrollIntoView()"
         )
-    
+
     @rx.event
-    def handle_non_intersect(self, entry: IntersectionObserverEntry) -> ev.EventSpec:
-        print(f"Non-intersected! {entry}")
-        return self.scroll_to_bottom()
+    def do_nothing(self):
+        return rx.call_script("console.log('hello, world!')")
+
+    # TODO fix this hacky solution, that scrolling after the fact is blocked
+    #@rx.event
+    #def handle_non_intersect(self, entry: IntersectionObserverEntry) -> ev.EventSpec:
+    #    return self.do_nothing()
+        # return self.scroll_to_bottom()
+        # return rx.cond(
+        #        MessageGenerator.should_load,
+        #        self.scroll_to_bottom(),
+        #        self.scroll_to_bottom(),
+        #    )
+        ##print(f"Non-intersected! {entry}")
+        # try:
+        ## if MessageGenerator.should_load:
+        ##    return self.scroll_to_bottom
+        ## else:
+        ##    return self.scroll_to_bottom
+
+        # return rx.cond(
+        #    MessageGenerator.should_load,
+        #    self.scroll_to_bottom,
+        #    self.scroll_to_bottom,
+        # )
+
+        ##return self.scroll_to_bottom
+        # except Exception as exp:
+        ##print(f"exception: {exp}")
+        # pass
 
 
 class MessageGenerator(rx.State):
@@ -41,7 +68,7 @@ class MessageGenerator(rx.State):
 
     @rx.event
     def stop(self):
-        self.on_load()        
+        self.on_load()
 
     @rx.event
     def on_load(self):
@@ -80,6 +107,19 @@ class MessageGenerator(rx.State):
             yield ScrollHandlingState.scroll_to_bottom
 
 
+def create_bubble(text: str) -> rx.Component:
+    return rx.box(
+        rx.markdown(
+            text,
+        ),
+        width="40vw",
+        padding="20px",
+        margin="20px",
+        border_radius="10px",
+        bg=rx.color("accent", 4),
+    )
+
+
 def index() -> rx.Component:
     return rx.vstack(
         rx.tooltip(
@@ -99,21 +139,24 @@ def index() -> rx.Component:
         rx.center(
             rx.scroll_area(
                 rx.vstack(
-                    rx.foreach(MessageGenerator.messages, rx.markdown),
-                    intersection_observer(
-                        height="1px",
+                    rx.foreach(MessageGenerator.messages, create_bubble),
+                    # intersection_observer(
+                    #    height="1px",
+                    #    id=BOTTOM_ELEMENT_ID,
+                    #    root="#scroller",
+                    #    #on_non_intersect=ScrollHandlingState.handle_non_intersect,
+                    #    visibility="hidden",
+                    # ),
+                    rx.text(
+                        "",
                         id=BOTTOM_ELEMENT_ID,
-                        root="#scroller",
-                        on_non_intersect=ScrollHandlingState.handle_non_intersect,
                         visibility="hidden",
                     ),
                 ),
                 id="scroller",
                 width="50vw",
                 height="80vh",
-                bg="gray",
                 padding="10px",
-                border_radius="10px",
                 margin="10px",
                 type="auto",
             ),
