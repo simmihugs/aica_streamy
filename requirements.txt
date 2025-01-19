@@ -80,7 +80,7 @@ reflex==0.6.8
 reflex-chakra==0.6.3a1
 reflex-clerk==1.0.3
 reflex-hosting-cli==0.1.30
-reflex-intersection-observer==0.0.4
+reflex-intersection-observer==0.0.5
 requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
