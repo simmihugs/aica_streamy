@@ -5,9 +5,7 @@ import reflex as rx
 import reflex.event as ev
 import reflex_chakra as rc
 
-from aica_streamy.state import MessageGenerator
-from aica_streamy.state import BOTTOM_ELEMENT_ID
-from aica_streamy.state import Message
+from aica_streamy.state import MessageGenerator, BOTTOM_ELEMENT_ID, Message
 
 
 STYLESHEETS = [
@@ -51,16 +49,16 @@ def index() -> rx.Component:
             rx.heading("Stream chat emulator"),
             content="emulate the response of an LLM from a long markdown string.",
         ),
-        rx.hstack(
-            rx.button(
-                MessageGenerator.button_text,
-                on_click=[
-                    MessageGenerator.start,
-                    MessageGenerator.add_messages,
-                ],
-            ),
-            rx.button("Stop", on_click=MessageGenerator.stop),
-        ),
+        #rx.hstack(
+        #    rx.button(
+        #        MessageGenerator.button_text,
+        #        on_click=[
+        #            MessageGenerator.start,
+        #            MessageGenerator.add_messages,
+        #        ],
+        #    ),
+        #    rx.button("Stop", on_click=MessageGenerator.stop),
+        #),
         rx.center(
             rx.scroll_area(
                 rx.vstack(
@@ -108,7 +106,7 @@ def index() -> rx.Component:
                     padding_left="10px",
                     padding_right="10px",
                 ),
-                # on_submit=<STATE>.process_question,
+                on_submit=MessageGenerator.process_question,
                 reset_on_submit=True,
                 position="sticky",
                 bottom="0",
@@ -125,5 +123,5 @@ def index() -> rx.Component:
     )
 
 
-app = rx.App(stylesheets=STYLESHEETS)
+app = rx.App(stylesheets=STYLESHEETS, theme=rx.theme(accent_color="grass"))
 app.add_page(index, on_load=MessageGenerator.on_load)
