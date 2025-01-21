@@ -13,15 +13,58 @@ STYLESHEETS = [
 ]
 
 
+def copy_button(message: Message) -> rx.Component:
+    return (
+        rx.box(
+            rx.cond(
+                (~MessageGenerator.should_load) | MessageGenerator.messages[-1].id
+                != message.id,
+                rx.hstack(
+                    rx.el.button(
+                        rx.icon(tag="copy", size=18),
+                        on_click=[
+                            rx.set_clipboard(message.text),
+                            rx.toast("Copied!"),
+                        ],
+                        _hover={"color": rx.color("accent", 8)},
+                    ),
+                    rx.text("copy"),
+                ),
+            ),
+            margin="10px",
+        ),
+    )
+
+
+def p(message: Message) -> rx.Component:
+    return rx.cond(
+        #rx.box(
+            #rx.cond(
+                True,
+                rx.text("", hidden=True,),
+            ),
+            #hidden=True,
+        #),
+    #)
+def p2(message: Message) -> rx.Component:
+    return rx.text(message)
+
+
 def create_bubble(message: Message) -> rx.Component:
     return rx.cond(
         message.sub_type == "answer",
         rx.box(
+            rx.cond(
+                message.length > 400,
+                copy_button(message),
+                p(message),
+            ),
             rx.markdown(
                 message.text,
+                margin="20px",
             ),
+            copy_button(message),
             width="40vw",
-            padding="20px",
             border_radius="10px",
             bg=rx.color("accent", 4),
             display="inline-block",

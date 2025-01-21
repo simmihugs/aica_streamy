@@ -28,6 +28,8 @@ BOTTOM_ELEMENT_ID = "bottom"
 class Message:
     text: str
     sub_type: str
+    id: int
+    length: int
 
 
 class ScrollHandlingState(rx.State):
@@ -68,10 +70,18 @@ class MessageGenerator(rx.State):
         while self.should_load:
             async with self:
                 if self.messages == [] or self.messages[-1].sub_type == "answer":
-                    self.messages.append(Message(sub_type="question", text=""))
+                    self.messages.append(
+                        Message(
+                            sub_type="question",
+                            text="",
+                            id=len(self.messages),
+                            length=0,
+                        )
+                    )
 
                 if self.index < len(self.question):
                     self.messages[-1].text += f"{self.question[self.index]}"
+                    self.messages[-1].length = self.index
                     self.index += 1
                 else:
                     self.index = 0
@@ -100,10 +110,15 @@ class MessageGenerator(rx.State):
             yield ScrollHandlingState.scroll_to_bottom
             async with self:
                 if self.messages[-1].sub_type == "question":
-                    self.messages.append(Message(sub_type="answer", text=""))
+                    self.messages.append(
+                        Message(
+                            sub_type="answer", text="", id=len(self.messages), length=0
+                        )
+                    )
 
                 if self.index < len(self.parts):
                     self.messages[-1].text += f"{self.parts[self.index]}"
+                    self.messages[-1].length = self.index
                     self.index += 1
                 elif self.done:
                     self.index = 0
