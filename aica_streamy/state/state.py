@@ -39,38 +39,27 @@ class ScrollHandlingState(rx.State):
 
 
 class MessageGenerator(rx.State):
-    # parts = list(content.markdown2)
     parts: list[str] = []
     done: bool = False
     index: int = 0
     question: list[str]
     messages: list[Message]
     should_load: bool = False
-    button_text: str
 
     @rx.event
     def process_question(self, data: dict[str, Any]):
         self.question = list(data["question"])
-        # print(self.question)
         return MessageGenerator.start
-
-    @rx.event
-    def stop(self):
-        self.on_load()
 
     @rx.event
     def on_load(self):
         self.index = 0
         self.messages = []
         self.should_load = False
-        self.button_text = "Start"
 
     @rx.event
     async def start(self):
-        self.on_load()
         self.should_load = True
-        self.button_text = "Restart"
-        self.messages = []
         self.index = 0
         return MessageGenerator.add_question
 
@@ -78,7 +67,7 @@ class MessageGenerator(rx.State):
     async def add_question(self):
         while self.should_load:
             async with self:
-                if self.messages == []:
+                if self.messages == [] or self.messages[-1].sub_type == "answer":
                     self.messages.append(Message(sub_type="question", text=""))
 
                 if self.index < len(self.question):
@@ -89,27 +78,9 @@ class MessageGenerator(rx.State):
                     self.question = []
                     break
 
+            yield ScrollHandlingState.scroll_to_bottom
             await asyncio.sleep(0.03)
-            yield ScrollHandlingState.scroll_to_bottom
         yield MessageGenerator.add_answer
-
-    @rx.event(background=True)
-    async def add_answer2(self):
-        while self.should_load:
-            async with self:
-                if self.messages[-1].sub_type == "question":
-                    self.messages.append(Message(sub_type="answer", text=""))
-
-                if self.index < len(self.parts):
-                    self.messages[-1].text += f"{self.parts[self.index]}"
-                    self.index += 1
-                else:
-                    self.index = 0
-                    self.should_load = False
-                    break
-
-            await asyncio.sleep(0.06)
-            yield ScrollHandlingState.scroll_to_bottom
 
     @rx.event(background=True)
     async def add_answer(self):
@@ -118,12 +89,15 @@ class MessageGenerator(rx.State):
             stream=True,
         )
         async with self:
+            self.parts = []
             for chunk in response:
                 if (answer := chunk.text) is not None:
                     for p in list(answer):
                         self.parts.append(p)
             self.done = True
+        await asyncio.sleep(0.03)
         while self.should_load:
+            yield ScrollHandlingState.scroll_to_bottom
             async with self:
                 if self.messages[-1].sub_type == "question":
                     self.messages.append(Message(sub_type="answer", text=""))
@@ -135,6 +109,8 @@ class MessageGenerator(rx.State):
                     self.index = 0
                     self.should_load = False
                     break
+                else:
+                    print("waiting for the api response")
 
-            await asyncio.sleep(0.015)
             yield ScrollHandlingState.scroll_to_bottom
+            await asyncio.sleep(0.015)
