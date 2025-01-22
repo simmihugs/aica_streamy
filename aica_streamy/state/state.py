@@ -1,11 +1,13 @@
+import time
 import asyncio
 from dataclasses import dataclass
 from typing import Any
 
 import reflex as rx
-import reflex.event as ev
 
-import aica_streamy.content as content
+# import reflex.event as ev
+
+# import aica_streamy.content as content
 
 import os
 from dotenv import dotenv_values, load_dotenv
@@ -100,16 +102,17 @@ class MessageGenerator(rx.State):
         )
         async with self:
             self.parts = []
+            self.index = 0
             for chunk in response:
                 if (answer := chunk.text) is not None:
-                    for p in list(answer):
-                        self.parts.append(p)
-            self.done = True
-        await asyncio.sleep(0.03)
+                    self.parts.append(answer)
+
         while self.should_load:
             yield ScrollHandlingState.scroll_to_bottom
+            await asyncio.sleep(0.3)
             async with self:
                 if self.messages[-1].sub_type == "question":
+                    print(f"{time.time()}: added question")
                     self.messages.append(
                         Message(
                             sub_type="answer", text="", id=len(self.messages), length=0
@@ -120,12 +123,11 @@ class MessageGenerator(rx.State):
                     self.messages[-1].text += f"{self.parts[self.index]}"
                     self.messages[-1].length = self.index
                     self.index += 1
-                elif self.done:
+                else:
                     self.index = 0
                     self.should_load = False
                     break
-                else:
-                    print("waiting for the api response")
 
             yield ScrollHandlingState.scroll_to_bottom
-            await asyncio.sleep(0.015)
+            await asyncio.sleep(0.3)
+        yield ScrollHandlingState.scroll_to_bottom
