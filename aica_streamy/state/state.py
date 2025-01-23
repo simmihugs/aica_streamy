@@ -22,7 +22,6 @@ from google.genai import types
 client_gemini = genai.Client(api_key=keys["GEMINI_API_KEY"])
 
 # openai
-#import openai
 from openai import AsyncOpenAI
 
 client_openai = AsyncOpenAI(api_key=keys["OPENAI_API_KEY"])
@@ -34,9 +33,6 @@ client_anthropic = AsyncAnthropic(api_key=keys["ANTHROPIC_API_KEY"])
 
 # mistral
 from mistralai import Mistral, UserMessage
-#from mistralai.async_client import MistralAsyncClient
-#from mistralai.models.chat_completion import ChatMessage
-#client_mistral = MistralAsyncClient(api_key=keys["MISTRAL_API_KEY"])
 client_mistral = Mistral(api_key=keys["MISTRAL_API_KEY"])
 
 
@@ -69,6 +65,10 @@ class MessageGenerator(rx.State):
     api: str = "anthropic"
 
     @rx.event
+    def set_api(self, api: str):
+        self.api = api
+
+    @rx.event
     def process_question(self, data: dict[str, Any]):
         self.question = data["question"]
         return MessageGenerator.start
@@ -77,6 +77,7 @@ class MessageGenerator(rx.State):
     def on_load(self):
         self.index = 0
         self.messages = []
+        self.question = ""
         self.should_load = False
 
     @rx.event
@@ -122,8 +123,8 @@ class MessageGenerator(rx.State):
         yield ScrollHandlingState.scroll_to_bottom
         
         match self.api:
-            case "google":
-                return MessageGenerator.add_answer_google
+            case "gemini":
+                return MessageGenerator.add_answer_gemini
             case "openai":
                 return MessageGenerator.add_answer_openai
             case "anthropic":
@@ -134,7 +135,7 @@ class MessageGenerator(rx.State):
                 return MessageGenerator.add_answer_gemini
 
     @rx.event(background=True)
-    async def add_answer_google(self):
+    async def add_answer_gemini(self):
         async with self:
             self.messages.append(
                 Message(sub_type="answer", text="", id=len(self.messages), length=0)
@@ -216,15 +217,21 @@ class MessageGenerator(rx.State):
             model="mistral-large-latest",
             messages=[UserMessage(content=self.question)]
         )
-
+        
         async for chunk in stream:
-            if chunk.choices[0].delta.content is not None:
-                characters = list(chunk.choices[0].delta.content)
-                for character in characters:
-                    async with self:
-                        self.messages[-1].text += f"{character}"
-                    await asyncio.sleep(0.025)
+            try:
+                content = chunk.data.choices[0].delta.content
+                if content is not None:
+                    characters = list(content)
+                    for character in characters:
+                        async with self:
+                            self.messages[-1].text += f"{character}"
+                        await asyncio.sleep(0.025)
                     yield ScrollHandlingState.scroll_to_bottom()
+            except Exception as exp:
+                print(f"Error processing chunk: {exp}")
+                async with self:
+                    self.should_load = False
 
         async with self:
             self.should_load = False

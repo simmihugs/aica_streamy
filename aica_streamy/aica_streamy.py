@@ -39,15 +39,6 @@ def copy_button(message: Message) -> rx.Component:
     )
 
 
-def generate_list(message: Message) -> rx.Component:
-    m: str = message.text[:15]
-    return rx.cond(
-        message.sub_type == "question",
-        rx.box(rx.text(f"question: {m}"), bg=rx.color("accent", 4)),
-        rx.box(rx.text(f"answer: {m}"), bg=rx.color("accent", 6)),
-    )
-
-
 def create_bubble(message: Message) -> rx.Component:
     config = dict(
         width="40vw", padding="10px", border_radius="20px", display="inline-block"
@@ -150,28 +141,40 @@ def scroll():
     )
 
 
-def index() -> rx.Component:
-    return rx.hstack(
-        rx.box(
-            rx.vstack(
-                rx.heading("Hello"),
-                rx.foreach(MessageGenerator.messages, generate_list),
+def selection_box() -> rx.Component:
+    return (
+        rx.vstack(
+            rx.box(
+                rx.vstack(
+                    rx.heading("LLM API"),
+                    rx.radio(
+                        ["anthropic", "gemini", "openai", "mistral"],
+                        on_change=MessageGenerator.set_api,
+                        direction="row",
+                        default_value="anthropic",
+                    ),
+                ),
+                padding="20px",
+                border_radius="10px",
+                bg=rx.color("gray", 5),
             ),
-            padding="20px",
-            border_radius="10px",
-            margin="20px",
-            bg=rx.color("gray", 5),
             width="50%",
             height="100%",
+            padding="20px",
         ),
+    )
+
+
+def index() -> rx.Component:
+    return rx.hstack(
+        selection_box(),
         rx.vstack(
-            rx.tooltip(
-                rx.heading("LLM Chat"),
-            ),
+            rx.heading("LLM Chat"),
             scroll(),
             input(),
             align="center",
             min_height="100vh",
+            padding_top="20px",
         ),
     )
 
