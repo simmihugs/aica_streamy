@@ -22,6 +22,115 @@ See [docs.docker.com](https://docs.docker.com/engine/install/ubuntu/)
 
 ## Using Docker
 
+### Preparations
+Erst mussten für das Repository eine Reihe von dateien erstellt werden
+
+    compose.yml
+    Dockerfile
+    web.Dockerfile
+    nginx.conf
+
+An diesen dateien musste ich erstaunlicherweise nichts ändern,
+keinen app namen eintragen oder ähnliches.
+
+File hierachie
+
+    {app_name}
+    ├── .web
+    ├── assets
+    ├── {app_name}
+    │   ├── __init__.py
+    │   └── {app_name}.py
+    ├── compose.yml
+    ├── Dockerfile
+    ├── nginx.conf
+    ├── web.Dockerfile
+    └── rxconfig.py
+
+Im detail sehen die so aus
+
+#### `compose.yml`
+
+    services:
+      backend:
+        build:
+          dockerfile: Dockerfile
+        ports:
+         - 8000:8000
+        depends_on:
+         - redis
+      frontend:
+        build:
+          dockerfile: web.Dockerfile
+        ports:
+          - 3000:80
+        depends_on:
+          - backend
+      redis:
+        image: redis
+
+#### `Dockerfile`
+
+    FROM python:3.12
+    
+    
+    ENV REDIS_URL=redis://redis PYTHONUNBUFFERED=1
+    
+    WORKDIR /app
+    COPY . .
+    
+    RUN pip install -r requirements.txt
+    
+    
+    ENTRYPOINT ["reflex", "run", "--env", "prod", "--backend-only", "--loglevel", "debug" ]
+
+#### `web.Dockerfile`
+
+    FROM python:3.12 AS builder
+    
+    WORKDIR /app
+    
+    COPY . .
+    RUN pip install -r requirements.txt
+    RUN reflex export --frontend-only --no-zip
+    
+    FROM nginx
+    
+    COPY --from=builder /app/.web/_static /usr/share/nginx/html
+    COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+#### `nginx.conf`
+
+    server { 
+     listen 80;
+     listen  [::]:80;
+     server_name frontend;
+    
+    
+     error_page   404  /404.html;
+    
+     location /_event {
+        proxy_set_header   Connection "upgrade";
+        proxy_pass http://backend:8000;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade $http_upgrade;
+     }
+    
+     location /ping {
+        proxy_pass http://backend:8000;
+     }
+    
+     location /_upload {
+        proxy_pass http://backend:8000;
+     }
+    
+     location / {
+       # This would be the directory where your Reflex app's static files are stored at
+       root /usr/share/nginx/html;
+     }
+    
+    }
+
 ### Build images
 
 ```
