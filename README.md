@@ -1,80 +1,93 @@
 # LLM Chat
 
-Exploring a LLM chat, which scrolls when answer outgrows given space
+Exploring an LLM chat, which scrolls when the answer outgrows the given space
 
 # Table of Contents
 
-1.  [Docker](#org876099e)
-    1.  [Docker installieren](#orgf359557)
-    2.  [Docker Benutzung](#org53a5a3e)
-        1.  [build images](#org4d4e77f)
-        2.  [list images](#org3a73a90)
-        3.  [tar images](#orgd4541c5)
-        4.  [copy tars to server](#org49244d7)
-        5.  [install images](#org1b613f8)
-        6.  [create compose file & run](#orga49def7)
+1. [Docker](#docker)
+   1. [Installing Docker](#installing-docker)
+   2. [Using Docker](#using-docker)
+      1. [Build images](#build-images)
+      2. [List images](#list-images)
+      3. [Tar images](#tar-images)
+      4. [Copy tars to server](#copy-tars-to-server)
+      5. [Install images](#install-images)
+      6. [Create compose file & run](#create-compose-file--run)
 
 # Docker
 
-## Docker installieren
+## Installing Docker
 
-Siehe [docks.docker.com](https://docs.docker.com/engine/install/ubuntu/)
+See [docs.docker.com](https://docs.docker.com/engine/install/ubuntu/)
 
-## Docker Benutzung
+## Using Docker
 
-### build images
+### Build images
 
-    ╭[simmi@pc] ~
-    ╰─> docker compose build
+```
+╭[simmi@pc] ~
+╰─> docker compose build
+```
 
-### list images
+### List images
 
-    ╭[simmi@pc] ~
-    ╰─> docker images
-    REPOSITORY            TAG       IMAGE ID       CREATED        SIZE
-    api_button-frontend   latest    c3c9d4ffb514   24 hours ago   193MB
-    api_button-backend    latest    9e69618a287d   24 hours ago   2.2GB
-    ╭[simmi@pc] ~
-    ╰─>    
+```
+╭[simmi@pc] ~
+╰─> docker images
+REPOSITORY               TAG       IMAGE ID       CREATED        SIZE
+aica_streamy-frontend    latest    c3c9d4ffb514   24 hours ago   193MB
+aica_streamy-backend     latest    9e69618a287d   24 hours ago   2.2GB
+╭[simmi@pc] ~
+╰─>    
+```
 
-### tar images
+### Tar images
 
-    docker save api_button-frontend:latest > api_button-frontend.tar
-    docker save api_button-backend:latest > api_button-backend.tar       
+```
+docker save aica_streamy-frontend:latest > aica_streamy-frontend.tar
+docker save aica_streamy-backend:latest > aica_streamy-backend.tar       
+```
 
-### copy tars to server
+### Copy tars to server
 
-    scp api_button-frontend.tar api_button-backend.tar <USER>@<SERVER>:~<DIR>/.
-    ssh <USER>@<SERVER>
+```
+scp aica_streamy-frontend.tar aica_streamy-backend.tar <USER>@<SERVER>:~<DIR>/.
+ssh <USER>@<SERVER>
+```
 
-### install images
+### Install images
 
-    docker load -i api_button-frontend.tar
-    docker load -i api_button-backend.tar
+```
+docker load -i aica_streamy-frontend.tar
+docker load -i aica_streamy-backend.tar
+```
 
-### create compose file & run
+### Create compose file & run
 
-1.  create `compose.yml`
+1. Create `compose.yml`
 
-        services:
-          backend:
-            image: api_button-frontend:latest
-            ports:
-             - 8000:8000
-            depends_on:
-             - redis
-          frontend:
-            image: api_button-frontend:latest
-            ports:
-              - 3000:80
-            depends_on:
-              - backend
-          redis:
-            image: redis
+```yaml
+services:
+  backend:
+    image: aica_streamy-frontend:latest
+    ports:
+     - 8000:8000
+    depends_on:
+     - redis
+  frontend:
+    image: aica_streamy-frontend:latest
+    ports:
+      - 3000:80
+    depends_on:
+      - backend
+  redis:
+    image: redis
+```
 
-2.  run
+2. Run
 
-        docker compose up
-        # or
-        docker compose up -d # d means detatched === in the background
-
+```
+docker compose up
+# or
+docker compose up -d # d means detached === in the background
+```
