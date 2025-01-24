@@ -24,17 +24,17 @@ Siehe [docks.docker.com](https://docs.docker.com/engine/install/ubuntu/)
 
 ### build images
 
-    ╭[simmi@ccdev111] ~
+    ╭[simmi@pc] ~
     ╰─> docker compose build
 
 ### list images
 
-    ╭[simmi@ccdev111] ~
+    ╭[simmi@pc] ~
     ╰─> docker images
     REPOSITORY            TAG       IMAGE ID       CREATED        SIZE
     api_button-frontend   latest    c3c9d4ffb514   24 hours ago   193MB
     api_button-backend    latest    9e69618a287d   24 hours ago   2.2GB
-    ╭[simmi@ccdev111] ~
+    ╭[simmi@pc] ~
     ╰─>    
 
 ### tar images
