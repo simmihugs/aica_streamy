@@ -7,12 +7,13 @@ Exploring an LLM chat, which scrolls when the answer outgrows the given space
 1. [Docker](#docker)
    1. [Installing Docker](#installing-docker)
    2. [Using Docker](#using-docker)
-      1. [Build images](#build-images)
-      2. [List images](#list-images)
-      3. [Tar images](#tar-images)
-      4. [Copy tars to server](#copy-tars-to-server)
-      5. [Install images](#install-images)
-      6. [Create compose file & run](#create-compose-file--run)
+      1. [Preparations](#preparations)
+      2. [Build images](#build-images)
+      3. [List images](#list-images)
+      4. [Tar images](#tar-images)
+      5. [Copy tars to server](#copy-tars-to-server)
+      6. [Install images](#install-images)
+      7. [Create compose file & run](#create-compose-file--run)
 
 # Docker
 
@@ -23,17 +24,17 @@ See [docs.docker.com](https://docs.docker.com/engine/install/ubuntu/)
 ## Using Docker
 
 ### Preparations
-Erst mussten für das Repository eine Reihe von dateien erstellt werden
+First, a series of files had to be created for the repository
 
     compose.yml
     Dockerfile
     web.Dockerfile
     nginx.conf
 
-An diesen dateien musste ich erstaunlicherweise nichts ändern,
-keinen app namen eintragen oder ähnliches.
+Surprisingly, I didn't have to change anything in these files,
+like entering an app name or similar.
 
-File hierachie
+File hierarchy
 
     {app_name}
     ├── .web
@@ -47,7 +48,7 @@ File hierachie
     ├── web.Dockerfile
     └── rxconfig.py
 
-Im detail sehen die so aus
+In detail, they look like this:
 
 #### `compose.yml`
 
